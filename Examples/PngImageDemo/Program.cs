@@ -44,16 +44,17 @@ namespace PngImageDemo
             // Create network
             this.net = new Net();
             this.net.AddLayer(new InputLayer(imageWidth - 4, imageHeight - 4, 1));
-            this.net.AddLayer(new ConvLayer(5, 5, 8) { Stride = 1, Pad = 2, Activation = Activation.Relu });
+            this.net.AddLayer(new ConvLayer(5, 5, 8) { Stride = 1, Pad = 2});
             this.net.AddLayer(new PoolLayer(2, 2) { Stride = 2 });
-            this.net.AddLayer(new ConvLayer(5, 5, 16) { Stride = 1, Pad = 2, Activation = Activation.Relu });
+            this.net.AddLayer(new ConvLayer(5, 5, 16) { Stride = 1, Pad = 2});
             this.net.AddLayer(new PoolLayer(3, 3) { Stride = 3 });
+            this.net.AddLayer(new FullyConnLayer(2));
             this.net.AddLayer(new SoftmaxLayer(2));
 
             DataContractSerializer serializer = new DataContractSerializer(typeof(Net));
             using (XmlReader reader = XmlReader.Create(@"C:\Projects\test.xml"))
             {
-                this.net = (Net)serializer.ReadObject(reader);
+           //     this.net = (Net)serializer.ReadObject(reader);
             }
 
             this.trainer = new AdadeltaTrainer(this.net)
@@ -157,7 +158,7 @@ namespace PngImageDemo
                     average.AddFrom(a);
                 }
 
-                var predictions = average.Weights.Select((w, k) => new { Label = k, Weight = w }).OrderBy(o => -o.Weight);                
+                var predictions = average.Select((w, k) => new { Label = k, Weight = w }).OrderBy(o => -o.Weight);
             }
         }
 
@@ -179,7 +180,7 @@ namespace PngImageDemo
             {
                 for (var j = 0; j < imageWidth; j++)
                 {
-                    x.Weights[j + i * imageWidth] = entry.Image[j + i * imageWidth] / 255.0;
+                    x.Set(j + i * imageWidth, entry.Image[j + i * imageWidth] / 255.0);
                 }
             }
 
@@ -201,11 +202,11 @@ namespace PngImageDemo
             {
                 for (var j = 0; j < imageWidth; j++)
                 {
-                    x.Weights[j + i * imageWidth] = entry.Image[j + i * imageWidth] / 255.0;
+                    x.Set(j + i * imageWidth, entry.Image[j + i * imageWidth] / 255.0);
                 }
             }
 
-//            for (var i = 0; i < 4; i++)
+            //            for (var i = 0; i < 4; i++)
             {
                 result.Add(new Item { Volume = x/*.Augment(2)*/, IsDefect = entry.IsDefect });
             }
@@ -225,11 +226,11 @@ namespace PngImageDemo
                 {
                     for (var j = 0; j < imageWidth; j++)
                     {
-                        x.Weights[j + i * imageWidth] = entry.Image[j + i * imageWidth] / 255.0;
+                        x.Set(j + i * imageWidth, entry.Image[j + i * imageWidth] / 255.0);
                     }
                 }
 
-//                for (var i = 0; i < 4; i++)
+                //                for (var i = 0; i < 4; i++)
                 {
                     result.Add(new Item { Volume = x/*.Augment(2)*/, IsDefect = entry.IsDefect });
                 }
